@@ -1,12 +1,8 @@
-import 'dotenv/config';
-import express from 'express';
-import cors from 'cors';
+import server from './server/index.js';
 
-const app = express();
+const port = process.env.PORT;
+const host = process.env.NODE_ENV !== 'production' ? 'localhost' : '0.0.0.0';
 
-app.use(express.json());
-app.use(cors({ origin: true }));
-
-app.listen(3000, () => {
-  console.log('Server is running on port 3000');
+server.listen(port, () => {
+  console.log(`Server is running on http://${host}:${port}`);
 });
