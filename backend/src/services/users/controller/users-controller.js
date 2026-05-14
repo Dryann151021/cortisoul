@@ -23,7 +23,7 @@ export const createUser = async (req, res, next) => {
     return next(new InvariantError('Gagal menambahkan user'));
   }
 
-  return response(res, 201, 'User berhasil ditambahkan', { userId: user });
+  return response(res, 201, 'User berhasil ditambahkan', user);
 };
 
 export const getUserById = async (req, res, next) => {
