@@ -1,8 +1,8 @@
-import { Pool } from 'pg';
+import pool from '../../../databases/index.js';
 
 class AuthenticationRepositories {
   constructor() {
-    this._pool = new Pool();
+    this._pool = pool;
   }
 
   async addRefreshToken(token) {

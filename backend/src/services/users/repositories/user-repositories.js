@@ -1,10 +1,10 @@
-import { Pool } from 'pg';
 import { nanoid } from 'nanoid';
 import bcrypt from 'bcrypt';
+import pool from '../../../databases/index.js';
 
 class UserRepositories {
   constructor() {
-    this._pool = new Pool();
+    this._pool = pool;
   }
 
   async createUser({ username, password, fullname }) {

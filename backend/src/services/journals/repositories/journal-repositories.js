@@ -1,9 +1,9 @@
 import { nanoid } from 'nanoid';
-import { Pool } from 'pg';
+import pool from '../../../databases/index.js';
 
 class JournalRepositories {
   constructor() {
-    this._pool = new Pool();
+    this._pool = pool;
   }
 
   async createJournal({ title, content, owner }) {
