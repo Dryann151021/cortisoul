@@ -5,6 +5,8 @@ import {
   getJournalById,
   editJournalById,
   deleteJournalById,
+  getWeeklyStress,
+  getWeeklyEmotion,
 } from '../controller/journals-controller.js';
 import { validate } from '../../../middlewares/validate.js';
 import { journalPayloadSchema } from '../validator/schema.js';
@@ -18,6 +20,8 @@ routes.post(
   validate(journalPayloadSchema),
   createJournal
 );
+routes.get('/stress-levels', authenticateToken, getWeeklyStress);
+routes.get('/emotions', authenticateToken, getWeeklyEmotion);
 routes.get('/', authenticateToken, getJournals);
 routes.get('/:id', authenticateToken, getJournalById);
 routes.put(

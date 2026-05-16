@@ -74,7 +74,49 @@ class JournalRepositories {
 
     const result = await this._pool.query(query);
 
-    return result.rowCount > 0 ? true : null;
+    return result.rowCount > 0;
+  }
+
+  async getWeeklyStressLevels(owner, startDate, endDate) {
+    const query = {
+      text: `
+        SELECT
+          DATE(created_at) AS date,
+          ROUND(AVG(stress_score), 1) AS average_score
+        FROM journals
+        WHERE owner = $1
+          AND created_at >= $2
+          AND created_at <= $3
+          AND stress_score IS NOT NULL
+        GROUP BY DATE(created_at)
+        ORDER BY DATE(created_at) ASC
+      `,
+      values: [owner, startDate, endDate],
+    };
+
+    const result = await this._pool.query(query);
+    return result.rows;
+  }
+
+  async getWeeklyEmotionSummary(owner, startDate, endDate) {
+    const query = {
+      text: `
+        SELECT
+          emotion AS label,
+          COUNT(*)::int AS count
+        FROM journals
+        WHERE owner = $1
+          AND created_at >= $2
+          AND created_at <= $3
+          AND emotion IS NOT NULL
+        GROUP BY emotion
+        ORDER BY count DESC
+      `,
+      values: [owner, startDate, endDate],
+    };
+
+    const result = await this._pool.query(query);
+    return result.rows;
   }
 }
 

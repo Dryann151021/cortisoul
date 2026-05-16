@@ -15,15 +15,26 @@ export const up = (pgm) => {
       notNull: true,
     },
     created_at: {
-      type: 'TIMESTAMP',
+      type: 'TIMESTAMPTZ',
       notNull: true,
     },
     updated_at: {
-      type: 'TIMESTAMP',
+      type: 'TIMESTAMPTZ',
       notNull: true,
+    },
+    stress_score: {
+      type: 'numeric(3, 1)',
+      notNull: false,
+    },
+    emotion: {
+      type: 'TEXT',
+      notNull: false,
     },
     owner: {
       type: 'VARCHAR(30)',
+      notNull: true,
+      references: 'users',
+      onDelete: 'cascade',
     },
   });
 };

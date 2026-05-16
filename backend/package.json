@@ -8,7 +8,8 @@
     "start": "node ./src/server.js",
     "dev": "nodemon ./src/server.js",
     "lint": "eslint ./src",
-    "migrate": "node-pg-migrate"
+    "migrate": "node-pg-migrate",
+    "seed": "node seed-data.js"
   },
   "keywords": [
     "backend",

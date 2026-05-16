@@ -3,6 +3,7 @@ import NotFoundError from '../../../exceptions/not-found-error.js';
 import response from '../../../utils/response.js';
 import journalRepositories from '../repositories/journal-repositories.js';
 import AuthorizationError from '../../../exceptions/authorization-error.js';
+import { getWeekRange, WEEK_DAYS, formatToYmd } from '../../../utils/date.js';
 
 export const createJournal = async (req, res, next) => {
   const { title, content } = req.validated;
@@ -99,4 +100,56 @@ export const deleteJournalById = async (req, res, next) => {
   }
 
   return response(res, 200, 'Jurnal berhasil dihapus', deletedJournal);
+};
+
+export const getWeeklyStress = async (req, res) => {
+  const { id: owner } = req.user;
+  const { start, end } = getWeekRange();
+
+  const stressRows = await journalRepositories.getWeeklyStressLevels(
+    owner,
+    start,
+    end
+  );
+
+  // Build stress levels for each day of the week (Mon-Sun)
+  const stressMap = new Map();
+  for (const row of stressRows) {
+    stressMap.set(
+      formatToYmd(new Date(row.date)),
+      parseFloat(row.average_score)
+    );
+  }
+
+  const monday = new Date(start);
+  const stressLevels = WEEK_DAYS.map((day, index) => {
+    const date = new Date(monday);
+    date.setDate(monday.getDate() + index);
+    const dateStr = formatToYmd(date);
+
+    return {
+      date: dateStr,
+      day,
+      averageScore: stressMap.get(dateStr) ?? null,
+    };
+  });
+
+  return response(res, 200, 'Stress level mingguan sukses ditampilkan', {
+    stressLevels,
+  });
+};
+
+export const getWeeklyEmotion = async (req, res) => {
+  const { id: owner } = req.user;
+  const { start, end } = getWeekRange();
+
+  const emotionSummary = await journalRepositories.getWeeklyEmotionSummary(
+    owner,
+    start,
+    end
+  );
+
+  return response(res, 200, 'Emosi mingguan sukses ditampilkan', {
+    emotionSummary,
+  });
 };
