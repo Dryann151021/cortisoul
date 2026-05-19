@@ -31,4 +31,5 @@ routes.put(
   editJournalById
 );
 routes.delete('/:id', authenticateToken, deleteJournalById);
+
 export default routes;
