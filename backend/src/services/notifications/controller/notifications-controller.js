@@ -1,14 +1,8 @@
-import webpush from 'web-push';
 import InvariantError from '../../../exceptions/invariant-error.js';
 import NotFoundError from '../../../exceptions/not-found-error.js';
 import response from '../../../utils/response.js';
 import notificationRepositories from '../repositories/notification-repositories.js';
-
-webpush.setVapidDetails(
-  process.env.VAPID_SUBJECT,
-  process.env.VAPID_PUBLIC_KEY,
-  process.env.VAPID_PRIVATE_KEY
-);
+import { sendPushNotifications } from '../utils/push-helper.js';
 
 export const subscribe = async (req, res, next) => {
   const { endpoint, keys } = req.validated;
@@ -45,14 +39,14 @@ export const unsubscribe = async (req, res, next) => {
   return response(res, 200, 'Webpush subscription berhasil dihapus');
 };
 
-export const testNotification = async (req, res) => {
+export const testNotification = async (req, res, next) => {
   const { id: userId } = req.user;
 
   const subscriptions =
     await notificationRepositories.getSubscriptionsByUserId(userId);
 
   if (!subscriptions.length) {
-    return response(res, 200, 'Tidak ada subscription untuk user ini');
+    return next(new NotFoundError('No subscription found for this user'));
   }
 
   const payload = JSON.stringify({
@@ -60,26 +54,7 @@ export const testNotification = async (req, res) => {
     body: 'This is a test notification from Cortisoul backend',
   });
 
-  let successCount = 0;
-  for (const sub of subscriptions) {
-    const pushSubscription = {
-      endpoint: sub.endpoint,
-      keys: {
-        p256dh: sub.keys_p256dh,
-        auth: sub.keys_auth,
-      },
-    };
+  const successCount = await sendPushNotifications(subscriptions, payload);
 
-    try {
-      await webpush.sendNotification(pushSubscription, payload);
-      successCount++;
-    } catch (error) {
-      console.error('Error sending push notification', error);
-      if (error.statusCode === 410 || error.statusCode === 404) {
-        await notificationRepositories.removeSubscription(sub.endpoint);
-      }
-    }
-  }
-
-  return response(res, 200, `Notifikasi terkirim ke ${successCount} perangkat`);
+  return response(res, 200, `Notification sent to ${successCount} devices`);
 };

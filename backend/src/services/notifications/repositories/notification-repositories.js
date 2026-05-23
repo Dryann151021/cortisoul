@@ -7,9 +7,6 @@ class NotificationRepositories {
   }
 
   async addSubscription({ userId, endpoint, keysP256dh, keysAuth }) {
-    // Remove existing subscription with the same endpoint if it exists
-    await this.removeSubscription(endpoint);
-
     const id = nanoid(16);
     const createdAt = new Date().toISOString();
     const updatedAt = createdAt;
@@ -50,6 +47,14 @@ class NotificationRepositories {
     const query = {
       text: 'SELECT * FROM notifications WHERE user_id = $1',
       values: [userId],
+    };
+    const result = await this._pool.query(query);
+    return result.rows;
+  }
+
+  async getAllSubscriptions() {
+    const query = {
+      text: 'SELECT * FROM notifications',
     };
     const result = await this._pool.query(query);
     return result.rows;
