@@ -1,9 +1,12 @@
 import { nanoid } from 'nanoid';
 import pool from '../../../config/database.js';
+import CacheService from '../../../cache/redis-config.js';
+import { getWeekRange, formatToYmd } from '../../../utils/date.js';
 
 class JournalRepositories {
   constructor() {
     this._pool = pool;
+    this.cacheService = new CacheService();
   }
 
   async createJournal({
@@ -34,16 +37,26 @@ class JournalRepositories {
     };
 
     const result = await this._pool.query(query);
+    await this._deleteCache(owner);
     return result.rows[0].id;
   }
 
   async getJournals(owner) {
-    const query = {
-      text: 'SELECT * FROM journals WHERE owner = $1',
-      values: [owner],
-    };
-    const result = await this._pool.query(query);
-    return result.rows;
+    const cacheKey = `journals:${owner}`;
+
+    try {
+      const journals = await this.cacheService.get(cacheKey);
+      return { data: JSON.parse(journals), source: 'cache' };
+    } catch {
+      const query = {
+        text: 'SELECT * FROM journals WHERE owner = $1',
+        values: [owner],
+      };
+
+      const result = await this._pool.query(query);
+      await this.cacheService.set(cacheKey, JSON.stringify(result.rows));
+      return { data: result.rows, source: 'database' };
+    }
   }
 
   async getJournalById(id) {
@@ -65,17 +78,27 @@ class JournalRepositories {
     };
 
     const result = await this._pool.query(query);
+
+    if (result.rows[0]) {
+      await this._deleteCache(result.rows[0].owner);
+    }
+
     return result.rows[0];
   }
 
   async deleteJournalById(id) {
     const query = {
-      text: 'DELETE FROM journals WHERE id = $1 RETURNING id',
+      text: 'DELETE FROM journals WHERE id = $1 RETURNING id, owner',
       values: [id],
     };
 
     const result = await this._pool.query(query);
-    return result.rows[0].id;
+
+    if (result.rows[0]) {
+      await this._deleteCache(result.rows[0].owner);
+    }
+
+    return result.rows[0];
   }
 
   async verifyJournalOwner(id, owner) {
@@ -93,33 +116,47 @@ class JournalRepositories {
   }
 
   async getWeeklyStressLevels(owner, startDate, endDate) {
-    const query = {
-      text: `
-        SELECT
-          DATE(created_at) AS date,
-          ROUND(AVG(stress_score), 1) AS average_score
-        FROM journals
-        WHERE owner = $1
-          AND created_at >= $2
-          AND created_at <= $3
-          AND stress_score IS NOT NULL
-        GROUP BY DATE(created_at)
-        ORDER BY DATE(created_at) ASC
-      `,
-      values: [owner, startDate, endDate],
-    };
+    const cacheKey = `stressLevels:${owner}:${startDate}:${endDate}`;
 
-    const result = await this._pool.query(query);
-    return result.rows;
+    try {
+      const weeklyStressLevels = await this.cacheService.get(cacheKey);
+      return { data: JSON.parse(weeklyStressLevels), source: 'cache' };
+    } catch {
+      const query = {
+        text: `
+          SELECT
+            DATE(created_at) AS date,
+            ROUND(AVG(stress_score), 1) AS average_score
+          FROM journals
+          WHERE owner = $1
+            AND created_at >= $2
+            AND created_at <= $3
+            AND stress_score IS NOT NULL
+          GROUP BY DATE(created_at)
+          ORDER BY DATE(created_at) ASC
+        `,
+        values: [owner, startDate, endDate],
+      };
+
+      const result = await this._pool.query(query);
+      await this.cacheService.set(cacheKey, JSON.stringify(result.rows));
+      return { data: result.rows, source: 'database' };
+    }
   }
 
   async getWeeklyEmotionSummary(owner, startDate, endDate) {
-    const query = {
-      text: `
-        SELECT
-          emotion AS label,
-          COUNT(*)::int AS count
-        FROM journals
+    const cacheKey = `emotionSummary:${owner}:${startDate}:${endDate}`;
+
+    try {
+      const weeklyEmotionSummary = await this.cacheService.get(cacheKey);
+      return { data: JSON.parse(weeklyEmotionSummary), source: 'cache' };
+    } catch {
+      const query = {
+        text: `
+          SELECT
+            emotion AS label,
+            COUNT(*)::int AS count
+          FROM journals
         WHERE owner = $1
           AND created_at >= $2
           AND created_at <= $3
@@ -127,11 +164,27 @@ class JournalRepositories {
         GROUP BY emotion
         ORDER BY count DESC
       `,
-      values: [owner, startDate, endDate],
-    };
+        values: [owner, startDate, endDate],
+      };
 
-    const result = await this._pool.query(query);
-    return result.rows;
+      const result = await this._pool.query(query);
+      await this.cacheService.set(cacheKey, JSON.stringify(result.rows));
+      return { data: result.rows, source: 'database' };
+    }
+  }
+
+  async _deleteCache(owner) {
+    const { start, end } = getWeekRange();
+    const startDate = formatToYmd(start);
+    const endDate = formatToYmd(end);
+
+    await this.cacheService.delete(`journals:${owner}`);
+    await this.cacheService.delete(
+      `stressLevels:${owner}:${startDate}:${endDate}`
+    );
+    await this.cacheService.delete(
+      `emotionSummary:${owner}:${startDate}:${endDate}`
+    );
   }
 }
 

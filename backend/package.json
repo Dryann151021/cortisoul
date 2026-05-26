@@ -31,6 +31,7 @@
     "node-cron": "^4.2.1",
     "node-pg-migrate": "^8.0.4",
     "pg": "^8.20.0",
+    "redis": "^5.12.1",
     "swagger-ui-express": "^5.0.1",
     "web-push": "^3.6.7"
   },

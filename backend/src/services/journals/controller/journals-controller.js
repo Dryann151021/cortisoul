@@ -39,7 +39,9 @@ export const createJournal = async (req, res, next) => {
 
 export const getJournals = async (req, res) => {
   const { id: owner } = req.user;
-  const journals = await journalRepositories.getJournals(owner);
+  const { data: journals, source } =
+    await journalRepositories.getJournals(owner);
+  res.set('X-Data-Source', source);
   const mapped = Array.isArray(journals) ? journals.map(journalToModel) : [];
 
   return response(res, 200, 'Jurnal sukses ditampilkan', {
@@ -120,12 +122,12 @@ export const deleteJournalById = async (req, res, next) => {
 export const getWeeklyStress = async (req, res) => {
   const { id: owner } = req.user;
   const { start, end } = getWeekRange();
+  const startDate = formatToYmd(start);
+  const endDate = formatToYmd(end);
 
-  const stressRows = await journalRepositories.getWeeklyStressLevels(
-    owner,
-    start,
-    end
-  );
+  const { data: stressRows, source } =
+    await journalRepositories.getWeeklyStressLevels(owner, startDate, endDate);
+  res.set('X-Data-Source', source);
 
   const stressMap = new Map();
   for (const row of stressRows) {
@@ -154,12 +156,16 @@ export const getWeeklyStress = async (req, res) => {
 export const getWeeklyEmotion = async (req, res) => {
   const { id: owner } = req.user;
   const { start, end } = getWeekRange();
+  const startDate = formatToYmd(start);
+  const endDate = formatToYmd(end);
 
-  const emotionSummary = await journalRepositories.getWeeklyEmotionSummary(
-    owner,
-    start,
-    end
-  );
+  const { data: emotionSummary, source } =
+    await journalRepositories.getWeeklyEmotionSummary(
+      owner,
+      startDate,
+      endDate
+    );
+  res.set('X-Data-Source', source);
 
   return response(res, 200, 'Emosi mingguan sukses ditampilkan', {
     emotionSummary,

@@ -49,7 +49,7 @@ class UserRepositories {
     };
 
     const user = await this._pool.query(query);
-    if (!user) {
+    if (!user.rows.length) {
       return null;
     }
 
