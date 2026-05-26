@@ -27,13 +27,15 @@
     "express": "^5.2.1",
     "joi": "^18.2.1",
     "jsonwebtoken": "^9.0.3",
+    "morgan": "^1.10.1",
     "nanoid": "^5.1.11",
     "node-cron": "^4.2.1",
     "node-pg-migrate": "^8.0.4",
     "pg": "^8.20.0",
     "redis": "^5.12.1",
     "swagger-ui-express": "^5.0.1",
-    "web-push": "^3.6.7"
+    "web-push": "^3.6.7",
+    "winston": "^3.19.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

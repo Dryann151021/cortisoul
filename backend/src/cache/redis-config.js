@@ -1,15 +1,14 @@
 import { createClient } from 'redis';
+import logger from '../config/logger.js';
 
 class CacheService {
   constructor() {
     this._client = createClient({
-      socket: {
-        host: process.env.REDIS_HOST,
-      },
+      url: process.env.REDIS_URL,
     });
 
     this._client.on('error', (error) => {
-      console.error(error);
+      logger.error('Redis error: %o', error);
     });
 
     this._client.connect();

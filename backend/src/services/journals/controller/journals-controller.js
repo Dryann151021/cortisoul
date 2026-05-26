@@ -13,7 +13,7 @@ export const createJournal = async (req, res, next) => {
 
   const prediction = await predictService(content);
   if (!prediction) {
-    console.error('[AI] Prediction failed');
+    return next(new InvariantError('Prediksi AI gagal'));
   }
 
   const stressScoreValue = parseFloat(prediction.stress_score.toFixed(3));

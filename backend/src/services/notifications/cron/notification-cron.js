@@ -1,13 +1,14 @@
 import cron from 'node-cron';
 import notificationRepositories from '../repositories/notification-repositories.js';
 import { sendPushNotifications } from '../../../utils/push-helper.js';
+import logger from '../../../config/logger.js';
 
 const sendDailyNotifications = async () => {
   try {
     const subscriptions = await notificationRepositories.getAllSubscriptions();
 
     if (!subscriptions) {
-      console.log('[Cron] No user is subscribed to receive notifications');
+      logger.info('[Cron] No user is subscribed to receive notifications');
       return;
     }
 
@@ -18,11 +19,11 @@ const sendDailyNotifications = async () => {
 
     const successCount = await sendPushNotifications(subscriptions, payload);
 
-    console.log(
+    logger.info(
       `[Cron] Successfully sent daily notifications to ${successCount} out of ${subscriptions.length} devices`
     );
   } catch (error) {
-    console.error('[Cron] Error running notification schedule:', error);
+    logger.error('[Cron] Error running notification schedule: %o', error);
   }
 };
 
