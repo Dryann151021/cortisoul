@@ -6,6 +6,7 @@ import authentications from '../services/authentications/routes/index.js';
 import journals from '../services/journals/routes/index.js';
 import notifications from '../services/notifications/routes/index.js';
 import predicts from '../services/predicts/routes/index.js';
+import health from '../services/health/routes/index.js';
 
 const routes = Router();
 
@@ -14,6 +15,7 @@ routes.use('/authentications', authentications);
 routes.use('/journals', journals);
 routes.use('/notifications', notifications);
 routes.use('/predict', predicts);
+routes.use('/health', health);
 routes.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 export default routes;

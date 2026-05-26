@@ -5,7 +5,7 @@ import journalRepositories from '../repositories/journal-repositories.js';
 import AuthorizationError from '../../../exceptions/authorization-error.js';
 import { getWeekRange, WEEK_DAYS, formatToYmd } from '../../../utils/date.js';
 import { journalToModel } from '../../../utils/mapDBToModel.js';
-import { predictText } from '../../predicts/service/ai-service.js';
+import { predictText } from '../../predicts/services/predict-services.js';
 
 export const createJournal = async (req, res, next) => {
   const { title, content } = req.validated;
