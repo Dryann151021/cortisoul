@@ -1,4 +1,5 @@
 import { createClient } from 'redis';
+import logger from '../config/logger.js';
 
 class CacheService {
   constructor() {
@@ -9,7 +10,7 @@ class CacheService {
     });
 
     this._client.on('error', (error) => {
-      console.error(error);
+      logger.error('Redis error: %o', error);
     });
 
     this._client.connect();

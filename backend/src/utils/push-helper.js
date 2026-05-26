@@ -1,5 +1,6 @@
 import webpush from 'web-push';
 import notificationRepositories from '../services/notifications/repositories/notification-repositories.js';
+import logger from '../config/logger.js';
 
 // VAPID details configuration
 try {
@@ -9,9 +10,7 @@ try {
     process.env.VAPID_PRIVATE_KEY
   );
 } catch {
-  console.warn(
-    'VAPID details belum lengkap, pastikan .env terisi dengan benar'
-  );
+  logger.warn('VAPID details belum lengkap, pastikan .env terisi dengan benar');
 }
 
 /**
@@ -40,8 +39,8 @@ export const sendPushNotifications = async (subscriptions, payload) => {
         // Subscription already invalid
         await notificationRepositories.removeSubscription(sub.endpoint);
       } else {
-        console.error(
-          'Error sending push notification to:',
+        logger.error(
+          'Error sending push notification to: %s %o',
           sub.endpoint,
           error
         );

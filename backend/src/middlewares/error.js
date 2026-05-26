@@ -1,5 +1,6 @@
 import response from '../utils/response.js';
 import { ClientError } from '../exceptions/index.js';
+import logger from '../config/logger.js';
 
 // eslint-disable-next-line
 const ErrorHandler = (err, req, res, next) => {
@@ -14,7 +15,7 @@ const ErrorHandler = (err, req, res, next) => {
   const status = err.statusCode || err.status || 500;
   const message = err.message || 'Internal Server Error';
 
-  console.error('Unhandled error:', err);
+  logger.error('Unhandled error: %o', err);
 
   return response(res, status, message, null);
 };
