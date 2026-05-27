@@ -10,21 +10,21 @@ import helmet from 'helmet';
 
 const app = express();
 
-// security middlewares
+// security
 app.use(helmet());
 app.use(cors({ origin: true }));
 app.use(express.json());
 
-// logging middleware
+// logging
 app.use(requestLogger);
 
 // routes
 app.use(routes);
 
-// error handling middleware
+// error handling
 app.use(ErrorHandler);
 
-// start cron job for notifications
+// notifications
 startCronJob();
 
 export default app;
