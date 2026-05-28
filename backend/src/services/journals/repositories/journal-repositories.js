@@ -173,6 +173,23 @@ class JournalRepositories {
     }
   }
 
+  async updateJournalPrediction(id, stressScore, emotion, owner) {
+    const updatedAt = new Date().toISOString();
+
+    const query = {
+      text: 'UPDATE journals SET stress_score = $1, emotion = $2, updated_at = $3 WHERE id = $4 RETURNING *',
+      values: [stressScore, emotion, updatedAt, id],
+    };
+
+    const result = await this._pool.query(query);
+
+    if (result.rows[0]) {
+      await this._deleteCache(owner);
+    }
+
+    return result.rows[0];
+  }
+
   async _deleteCache(owner) {
     const { start, end } = getWeekRange();
     const startDate = formatToYmd(start);

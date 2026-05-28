@@ -5,36 +5,31 @@ import journalRepositories from '../repositories/journal-repositories.js';
 import AuthorizationError from '../../../exceptions/authorization-error.js';
 import { getWeekRange, WEEK_DAYS, formatToYmd } from '../../../utils/date.js';
 import { journalToModel } from '../../../utils/mapDBToModel.js';
-import { predictService } from '../../predicts/services/predict-services.js';
+import ProducerService from '../producer/producer.js';
 
 export const createJournal = async (req, res, next) => {
   const { title, content } = req.validated;
   const { id: owner } = req.user;
 
-  const prediction = await predictService(content);
-  if (!prediction) {
-    return next(new InvariantError('Prediksi AI gagal'));
-  }
-
-  const stressScoreValue = parseFloat(prediction.stress_score.toFixed(3));
-
-  const journal = await journalRepositories.createJournal({
+  const journalId = await journalRepositories.createJournal({
     title,
     content,
-    stressScore: stressScoreValue,
-    emotion: prediction?.prediksi_label ?? null,
+    stressScore: null,
+    emotion: null,
     owner,
   });
-  if (!journal) {
+
+  if (!journalId) {
     return next(new InvariantError('Jurnal gagal ditambahkan'));
   }
 
-  const responseData = { journalId: journal };
-  if (prediction) {
-    responseData.prediction = prediction;
-  }
+  // Publish to RabbitMQ for async processing
+  await ProducerService.sendMessage(
+    'predict:journal',
+    JSON.stringify({ journalId, content, owner })
+  );
 
-  return response(res, 201, 'Jurnal berhasil ditambahkan', responseData);
+  return response(res, 201, 'Jurnal berhasil ditambahkan', { journalId });
 };
 
 export const getJournals = async (req, res) => {
