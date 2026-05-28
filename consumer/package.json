@@ -1,0 +1,33 @@
+{
+  "name": "consumer",
+  "version": "1.0.0",
+  "description": "Consumer service untuk memproses queue",
+  "main": "./src/consumer.js",
+  "type": "module",
+  "scripts": {
+    "start:prod": "NODE_ENV=production node ./src/consumer.js",
+    "start:dev": "nodemon ./src/consumer.js"
+  },
+  "keywords": [
+    "consumer",
+    "rabbitmq"
+  ],
+  "author": "Adriyan",
+  "license": "ISC",
+  "packageManager": "pnpm@10.27.0",
+  "dependencies": {
+    "amqplib": "^2.0.1",
+    "axios": "^1.16.1",
+    "dotenv": "^17.4.2",
+    "pg": "^8.21.0",
+    "redis": "^5.12.1",
+    "winston": "^3.19.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.4.0",
+    "eslint-config-dicodingacademy": "^0.9.5",
+    "globals": "^17.6.0",
+    "nodemon": "^3.1.14"
+  }
+}
